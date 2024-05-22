@@ -1,0 +1,155 @@
+import numpy as np
+
+class NeuralNetwork:
+    
+    def __init__ (self, dimension_vector, input_dimensions, output_dimensions, activation, dataset):
+        """ 
+        The dimension vector is a vector that contains the number of neurons in each layer - the integer at position i is the number of 
+        neurons in layer i
+        """
+        self.dimension_vector = dimension_vector
+        """
+        the input dimensions are a list that contain the dimensions of inputs- the user wont input this variable and it will be handled
+        in the function that calls this class
+        """
+        self.input_dimensions = input_dimensions
+        """
+        The output dimensions are the desired matrix dimensions of the output of the network, will be inputted by the user"""
+        self.output_dimensions = output_dimensions
+        """The activation is just what activation function the user wants, eg. ReLU, sigmoid etc"""
+        self.activation = activation
+        """ the dataset that the network is trained on"""
+        self.dataset = dataset
+
+        self.create_weight_matrix()
+        self.create_bias_vector()
+        self.create_activation_matrix()
+     
+    def create_weight_matrix(self): 
+        """
+        This function creates the weight matrices for each layer of the neural network.
+        """
+        self.weight_matrix = []
+
+        # Define the length of the dimension vector
+        self.dimension_vector_length = len(self.dimension_vector)
+        
+        for i in range(self.dimension_vector_length):
+            if i == 0:
+                # Initialize weights for the first layer with dimensions matching the input
+                layer_weights = [np.random.rand(self.input_dimensions[1], self.input_dimensions[0]) for _ in range(self.dimension_vector[0])]
+            elif i != self.dimension_vector_length - 1:
+                # Initialize weights for hidden layers
+                layer_weights = [np.random.rand(self.input_dimensions[0], self.input_dimensions[0]) for _ in range(self.dimension_vector[i])]
+            else:
+                # Initialize weights for the last layer to match the output dimensions
+                layer_weights = [np.random.rand(self.output_dimensions[0], self.dimension_vector[-2]) for _ in range(self.dimension_vector[-1])]
+            self.weight_matrix.append(layer_weights)
+    
+    def create_bias_vector(self):
+        """
+        This function creates the bias vectors for each layer of the neural network.
+        """
+        self.bias_vector = []
+
+        for i in range(len(self.dimension_vector)):
+            # Create a bias vector of appropriate length for each layer
+            bias = np.random.randn(self.dimension_vector[i], self.input_dimensions[1])
+            self.bias_vector.append(bias)
+    def create_activation_matrix(self):
+        """
+         This function creates the activation matrices for each layer of the neural network.
+        """
+        self.activation_matrix = []
+        for i in range(len(self.dimension_vector)):
+            if i == 0:
+                # For the input layer, activations are the input multiplied by its transpose
+                layer_activations = [np.zeros((self.input_dimensions[0], self.input_dimensions[0])) for _ in range(self.dimension_vector[i])]
+            elif i == len(self.dimension_vector) - 1:
+                # For the output layer, activations are based on output dimensions
+                layer_activations = [np.zeros(self.output_dimensions) for _ in range(self.dimension_vector[i])]
+            else:
+                # For hidden layers, activations have the same dimensions as input_dimensions[1]
+                layer_activations = [np.zeros((self.input_dimensions[0], self.input_dimensions[0])) for _ in range(self.dimension_vector[i])]
+            self.activation_matrix.append(layer_activations)
+    def display_weights(self):
+        """
+        This function displays the weight matrices for each layer of the neural network in a formatted way.
+        """
+        print("Weight Matrices:")
+        for i, layer in enumerate(self.weight_matrix):
+            print(f"Layer {i + 1} weights:")
+            for j, weights in enumerate(layer):
+                print(f"Matrix {j + 1}:\n{weights}")
+            print("|" * 40)
+
+    def display_biases(self):
+        """
+        This function displays the bias vectors for each layer of the neural network.
+        """
+        print("Bias Vectors:")
+        for i, biases in enumerate(self.bias_vector):
+            print(f"Layer {i + 1} biases:")
+            for bias in biases:
+                print(bias)
+            print("|" * 40)
+    def display_activations(self):
+        """
+        This function displays the activation matrices for each layer of the neural network.
+        """
+        print("Activation Matrices:")
+        for i, activations in enumerate(self.activation_matrix):
+            print(f"Layer {i + 1} activations:")
+            for activation in activations:
+                print(activation)
+                print("|")
+            print("-" * 50)
+    def forward_propogation(self, epoch):
+        self.input_matrix = self.dataset[0][epoch]
+        for i in range (len(dimension_vector)):
+            if i == 0:
+                for j in range(len(self.activation_matrix[i])):
+                    self.activation_matrix[i][j] = np.dot(self.weight_matrix[i][j], self.input_matrix) + self.bias_vector[i][j][:, np.newaxis]
+            else:
+                self.average_input = np.zeros((self.input_dimensions[0], self.input_dimensions[0]))
+                for j in range(len(self.average_input)):
+                    for k in range(len(self.average_input[0])):
+                        #find sum of previous layers activation at position j, k
+                        sumV = 0
+                        for l in range(self.dimension_vector[i-1]):
+                            sumV += self.activation_matrix[i-1][l][j][k]
+                        sumV /= (self.dimension_vector[-1])
+                        self.average_input[j][k] = sumV
+                            
+                    
+                for j in range(len(self.activation_matrix[i])):
+                    self.activation_matrix[i][j] = np.dot(self.average_input, self.weight_matrix[i][j]) + self.bias_vector[i][j][:, np.newaxis]
+                    
+        
+                    
+    def train(self, threshold ):
+        for epoch in range(len(self.dataset)):
+            output = self.forward_propogation(epoch)
+            loss = np.power( (self.dataset[1][epoch] -output, 2 ))
+            
+        
+        
+        
+# Example usage:
+input_dimensions = (3, 3)  # Example input dimensions
+output_dimensions = (3, 3)  # Example output dimensions
+dimension_vector = [3, 4, 2, 1]  # Example dimension vector
+activation = 'sigmoid'  # Example activation function
+dataset = [[3,3,3],[3,3,3],[3,3,3]] # Example dataset
+
+# Initialize neural network
+network = NeuralNetwork(dimension_vector, input_dimensions, output_dimensions, activation, dataset)
+
+# Display weight matrices and bias vectors
+network.display_weights()
+network.display_biases()
+network.display_activations()
+
+network.forward_propogation(0)
+
+network.display_activations()
